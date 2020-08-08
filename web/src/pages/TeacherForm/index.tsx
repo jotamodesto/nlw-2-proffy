@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useReducer } from "react";
 import { useHistory } from "react-router-dom";
 
 import PageHeader from "../../components/PageHeader";
@@ -8,46 +8,51 @@ import warningIcon from "../../assets/images/icons/warning.svg";
 import Textarea from "../../components/Textarea";
 import Select from "../../components/Select";
 
-import "./styles.css";
 import api from "../../services/api";
+
+import reducer, {
+  initialState,
+  FieldName,
+  ScheduleItemFields,
+} from "./reducer";
+import "./styles.css";
 
 const TeacherForm = () => {
   const history = useHistory();
 
-  const [name, setName] = useState("");
-  const [avatar, setAvatar] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [bio, setBio] = useState("");
-
-  const [subject, setSubject] = useState("");
-  const [cost, setCost] = useState("");
-
-  const [scheduleItems, setScheduleItems] = useState([
-    { week_day: "0", from: "", to: "" },
-  ]);
+  const [
+    { name, avatar, whatsapp, bio, subject, cost, scheduleItems },
+    dispatch,
+  ] = useReducer(reducer, initialState);
 
   function addNewScheduleItem() {
-    setScheduleItems((prevScheduleItem) => [
-      ...prevScheduleItem,
-      { week_day: "0", from: "", to: "" },
-    ]);
+    dispatch({ type: "new-schedule-item" });
   }
 
-  function setScheduleItemValue(
-    position: number,
-    field: string,
-    value: string
+  function handleSetValue(
+    event: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) {
-    setScheduleItems((prevScheduleItems) => {
-      const updatedScheduleItems = prevScheduleItems.map(
-        (scheduleItem, index) => {
-          if (index === position) return { ...scheduleItem, [field]: value };
-          return scheduleItem;
-        }
-      );
-
-      return updatedScheduleItems;
+    dispatch({
+      type: "set-string-value",
+      payload: {
+        fieldName: event.target.name as FieldName,
+        value: event.target.value,
+      },
     });
+  }
+
+  function setScheduleItemValue(index: number) {
+    return (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+      dispatch({
+        type: "set-schedule-item",
+        payload: {
+          index,
+          field: event.target.name as ScheduleItemFields,
+          value: event.target.value,
+        },
+      });
   }
 
   function handleCreateClass(event: React.FormEvent) {
@@ -60,7 +65,7 @@ const TeacherForm = () => {
         whatsapp,
         bio,
         subject,
-        cost: Number(cost),
+        cost: parseFloat(cost),
         schedule: scheduleItems,
       })
       .then(() => {
@@ -87,25 +92,25 @@ const TeacherForm = () => {
               name="name"
               label="Nome completo"
               value={name}
-              onChange={(event) => setName(event.target.value)}
+              onChange={handleSetValue}
             />
             <Input
               name="avatar"
               label="Avatar"
               value={avatar}
-              onChange={(event) => setAvatar(event.target.value)}
+              onChange={handleSetValue}
             />
             <Input
               name="whatsapp"
               label="Whatsapp"
               value={whatsapp}
-              onChange={(event) => setWhatsapp(event.target.value)}
+              onChange={handleSetValue}
             />
             <Textarea
               name="bio"
               label="Biografia"
               value={bio}
-              onChange={(event) => setBio(event.target.value)}
+              onChange={handleSetValue}
             />
           </fieldset>
 
@@ -126,13 +131,13 @@ const TeacherForm = () => {
                 { value: "Português", label: "Português" },
                 { value: "Química", label: "Química" },
               ]}
-              onChange={(event) => setSubject(event.target.value)}
+              onChange={handleSetValue}
             />
             <Input
               name="cost"
               label="Custo da sua hora por aula"
               value={cost}
-              onChange={(event) => setCost(event.target.value)}
+              onChange={handleSetValue}
             />
           </fieldset>
 
@@ -150,9 +155,7 @@ const TeacherForm = () => {
                   name="week_day"
                   label="Dia da semana"
                   value={scheduleItem.week_day}
-                  onChange={(e) =>
-                    setScheduleItemValue(index, "week_day", e.target.value)
-                  }
+                  onChange={setScheduleItemValue(index)}
                   options={[
                     { value: "0", label: "Domingo" },
                     { value: "1", label: "Segunda-feira" },
@@ -168,18 +171,14 @@ const TeacherForm = () => {
                   label="Das"
                   type="time"
                   value={scheduleItem.from}
-                  onChange={(event) =>
-                    setScheduleItemValue(index, "from", event.target.value)
-                  }
+                  onChange={setScheduleItemValue(index)}
                 />
                 <Input
                   name="to"
                   label="Até"
                   type="time"
                   value={scheduleItem.to}
-                  onChange={(event) =>
-                    setScheduleItemValue(index, "to", event.target.value)
-                  }
+                  onChange={setScheduleItemValue(index)}
                 />
               </div>
             ))}
