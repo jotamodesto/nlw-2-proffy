@@ -19,8 +19,8 @@ export interface ScheduleItem {
 export type FieldName = keyof Omit<TeacherFormState, "scheduleItems">;
 export type ScheduleItemFields = keyof ScheduleItem;
 
-interface StringValueAction {
-  type: "set-string-value";
+interface ValueAction {
+  type: "set-value";
   payload: {
     fieldName: FieldName;
     value: string;
@@ -35,7 +35,7 @@ interface NewScheduleItemAction {
 }
 
 export type TeacherFormAction =
-  | StringValueAction
+  | ValueAction
   | ScheduleItemsAction
   | NewScheduleItemAction;
 
@@ -52,7 +52,7 @@ export const initialState: TeacherFormState = {
 function reducer(state: TeacherFormState, action: TeacherFormAction) {
   return produce(state, (draft) => {
     switch (action.type) {
-      case "set-string-value":
+      case "set-value":
         const { fieldName, value } = action.payload;
         draft[fieldName] = value;
         break;

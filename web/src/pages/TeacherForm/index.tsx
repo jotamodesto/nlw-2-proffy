@@ -35,7 +35,7 @@ const TeacherForm = () => {
     >
   ) {
     dispatch({
-      type: "set-string-value",
+      type: "set-value",
       payload: {
         fieldName: event.target.name as FieldName,
         value: event.target.value,
